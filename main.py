@@ -29,6 +29,7 @@ if __name__ == "__main__":
     while True:
         try:
             bot.check_messages()
+            bot.check_unkicked()
             time.sleep(1)
         except KeyboardInterrupt:
             log.error("Shutdown...")

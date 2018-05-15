@@ -1,4 +1,5 @@
 *.pyc
+*.db
 credentials.json
 vk_config.v2.json
 last_message_id.txt
