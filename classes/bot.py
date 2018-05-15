@@ -5,6 +5,7 @@ import os
 from vk import VK
 from database import Database
 from commands import Command
+from datetime import datetime
 
 class Bot:
     def __init__(self, config, creds, messages, logging):
@@ -48,6 +49,14 @@ class Bot:
                         if text and text[0][0] == "/":
                             self.spawn_command(text)
 
+    def check_unkicked(self):
+        kicked = self.database.get_unkicked()
+        if kicked:
+            self.log.info("Next users will unckicked: {0}".format(kicked))
+            for user in kicked:
+                self.log.info("Unckicking user with id {0}".format(user[0]))
+                self.command.user_unkick(["id{0}".format(user[0])])
+
     def spawn_command(self, command):
         command_type = command[0][1:]
         command_params = command[1:]
@@ -60,6 +69,8 @@ class Bot:
             self.command.print_hello()
         elif command_type == "кик":
             self.command.user_kick(command_params)
+        elif command_type == "вернуть":
+            self.command.user_unkick(command_params)
         elif command_type == "бан":
             self.command.user_ban(command_params)
         elif command_type == "разбан":

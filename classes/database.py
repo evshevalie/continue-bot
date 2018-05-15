@@ -36,3 +36,8 @@ class Database:
         q = "DELETE FROM users_kicked WHERE id={0}".format(user_id)
         self.cursor.execute(q)
         self.connect.commit()
+
+    def get_unkicked(self):
+        q = "SELECT id FROM users_kicked WHERE unkick_time < datetime('now', 'localtime')"
+        self.cursor.execute(q)
+        return self.cursor.fetchall()
