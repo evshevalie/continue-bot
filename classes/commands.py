@@ -15,7 +15,8 @@ class Command:
 
     def user_kick(self, params):
         user_id = params[0].split("|")[0].replace("[id","")
-        self.vk.send_message(self.chat_id, "КИКАЛИТИ 😏")
+        
+        self.vk.send_message(self.chat_id, self.messages['kick'])
         self.vk.kick_user(self.chat_id, user_id)
 
     def user_ban(self, params):
