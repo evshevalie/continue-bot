@@ -3,15 +3,19 @@ import logging
 import os
 
 from vk import VK
+from database import Database
 from commands import Command
 
 class Bot:
     def __init__(self, config, creds, messages, logging):
+        self.lm = os.path.join(os.getcwd(), "config/last_message_id.txt")
+        db_path = os.path.join(os.getcwd(), "database/continue-bot.db")
+
         self.log = logging
         self.vk = VK(creds['login'], creds['password'])
-        self.command = Command(self.vk, config['chat_id'], messages)
+        self.database = Database(db_path, logging)
+        self.command = Command(self.vk, self.database, config['chat_id'], messages, self.log)
         self.config = config
-        self.lm = os.path.join(os.getcwd(), "config/last_message_id.txt")
 
         if os.stat(self.lm).st_size != 0:
             with open(self.lm, 'r') as l:
@@ -58,5 +62,7 @@ class Bot:
             self.command.user_kick(command_params)
         elif command_type == "бан":
             self.command.user_ban(command_params)
+        elif command_type == "разбан":
+            self.command.user_unban(command_params)
         else:
             self.command.unknown()

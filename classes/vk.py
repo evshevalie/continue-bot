@@ -20,6 +20,12 @@ class VK:
             value
         )
 
+    def add_user(self, user_id, text):
+        return self.vk.method(
+            'friends.add',
+            {'user_id': user_id, 'text': text}
+        )
+
     def kick_user(self, chat_id, user_id):
         return self.vk.method(
             'messages.removeChatUser',
@@ -31,3 +37,9 @@ class VK:
             'messages.addChatUser',
             {'chat_id': chat_id, 'user_id': user_id}
         )
+
+    def get_uid_by_nick(self, nick):
+        return self.vk.method(
+            'utils.resolveScreenName',
+            {'screen_name': nick}
+        )['object_id']
