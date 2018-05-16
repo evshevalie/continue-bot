@@ -32,6 +32,8 @@ if __name__ == "__main__":
             bot.check_messages()
             bot.check_unkicked()
             bot.check_intruders()
+            bot.check_friends()
+            bot.check_news()
             time.sleep(1)
         except KeyboardInterrupt:
             log.error("Shutdown...")

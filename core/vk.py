@@ -14,6 +14,18 @@ class VK:
             {'chat_id': chat_id, 'message': message}
         )
 
+    def send_repost(self, chat_id, attachment):
+        return self.vk.method(
+            'messages.send',
+            {'chat_id': chat_id, 'attachment': attachment}
+        )
+
+    def send_message_user(self, user_id, message):
+        return self.vk.method(
+            'messages.send',
+            {'user_id': user_id, 'message': message}
+        )
+
     def get_messages(self, value):
         return self.vk.method(
             'messages.get',
@@ -49,3 +61,12 @@ class VK:
             'messages.getChat',
             {'chat_id': chat_id}
         )['users']
+
+    def request_list(self):
+        return self.vk.method('friends.getRequests')['items']
+
+    def get_last_news(self, group_id):
+        return self.vk.method(
+            'wall.get',
+            {'owner_id': "-{0}".format(group_id), "offset": 1, "count": 1}
+        )['items'][0]['id']

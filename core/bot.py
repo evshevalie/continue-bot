@@ -11,6 +11,7 @@ from datetime import datetime
 class Bot:
     def __init__(self, config, creds, messages, logging):
         self.lm = os.path.join(os.getcwd(), "cache/last_message_id")
+        self.ln = os.path.join(os.getcwd(), "cache/last_post_id")
         db_path = os.path.join(os.getcwd(), "database/continue-bot.db")
 
         self.log = logging
@@ -24,6 +25,7 @@ class Bot:
             logging
         )
         self.config = config
+        self.messages = messages
 
         if os.path.exists(self.lm):
             with open(self.lm, 'r') as l:
@@ -68,6 +70,25 @@ class Bot:
                 self.vk.kick_user(self.config['chat_id'], i)
                 self.log.info("Kicked intruder with id {0}".format(i))
 
+    def check_friends(self):
+        users = self.vk.request_list()
+        if users:
+            for u in users:
+                self.vk.add_user(u, self.messages['frendly'])
+
+    def check_news(self):
+        with open(self.ln, "r") as r:
+            last_id = int(r.read())
+        last_news = int(self.vk.get_last_news(self.config['group_id']))
+        if last_id != last_news:
+            self.log.info("Last news id: {0}".format(last_news))
+            self.vk.send_repost(
+                self.config['chat_id'],
+                "wall-{0}_{1}".format(self.config['group_id'], last_news)
+            )
+            with open(self.ln, "w+") as f:
+                f.write(str(last_news))
+
     def __last_message(self, msg_id):
         message_conf = self.config['messages']
 
@@ -80,7 +101,7 @@ class Bot:
 
     def __spawn_command(self, command, user_id):
         command_type = command[0][1:]
-        command_params = command[1:]
+        command_params = [] + command[1:]
 
         self.log.info("Read command \"{0}\"".format(command_type))
         if command_type == "помощь":

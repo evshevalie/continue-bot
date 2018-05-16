@@ -7,21 +7,27 @@ class Database:
         self.log = logger
 
     def __set(self, query):
-        connect = lite.connect(self.database)
-        cursor = connect.cursor()
-        cursor.execute(query)
-        connect.commit()
-        connect.close()
+        try:
+            connect = lite.connect(self.database)
+            cursor = connect.cursor()
+            cursor.execute(query)
+            connect.commit()
+            connect.close()
+        except lite.IntegrityError:
+            self.log("Not unique")
 
     def __get(self, query):
-        connect = lite.connect(self.database)
-        cursor = connect.cursor()
-        cursor.execute(query)
+        try:
+            connect = lite.connect(self.database)
+            cursor = connect.cursor()
+            cursor.execute(query)
 
-        result = [id[0] for id in cursor.fetchall()]
+            result = [id[0] for id in cursor.fetchall()]
 
-        connect.close()
-        return result
+            connect.close()
+            return result
+        except lite.IntegrityError:
+            self.log("Not unique")
 
     def set_ban(self, user_id):
         q = "INSERT INTO users_banned VALUES ({0})".format(user_id)
@@ -38,6 +44,10 @@ class Database:
     def set_kicked(self, user_id, datetime):
         q = "INSERT INTO users_kicked VALUES ({0}, '{1}')".format(user_id, datetime)
         self.__set(q)
+
+    def is_kicked(self, user_id):
+        q = "SELECT * FROM users_kicked WHERE id={0}".format(user_id)
+        return len(self.__get(q))
 
     def get_all_kicked(self):
         q = "SELECT id FROM users_kicked"
