@@ -12,6 +12,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+
 if __name__ == "__main__":
     log = logging.getLogger(__name__)
     with open('config/config.json', 'r') as conf:
