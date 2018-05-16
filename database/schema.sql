@@ -7,6 +7,7 @@ CREATE TABLE users_kicked (
   unkick_time TEXT NOT NULL
 );
 
-CREATE TABLE admins (
-  id INT PRIMARY KEY NOT NULL
+CREATE TABLE users_admin (
+  id INT PRIMARY KEY NOT NULL,
+  permissions INT NOT NULL DEFAULT 0
 );
