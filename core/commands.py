@@ -13,12 +13,6 @@ class Command:
         self.vk = vk
         self.db = db
 
-    def print_hello(self):
-        self.vk.send_message(self.chat_id, self.messages['hello'])
-
-    def print_help(self):
-        self.vk.send_message(self.chat_id, self.messages['help'])
-
     def user_kick(self, params):
         user_id = params[0].split("|")[0].replace("[id","")
         time_count = int(params[1][:-1])
@@ -67,6 +61,11 @@ class Command:
             self.log.error("This user are not in friend list")
             self.vk.send_message(self.chat_id, self.messages['return'])
 
+    def print_hello(self):
+        self.vk.send_message(self.chat_id, self.messages['hello'])
+
+    def print_help(self):
+        self.vk.send_message(self.chat_id, self.messages['help'])
 
     def unknown(self):
         self.vk.send_message(self.chat_id, self.messages['unknown'])

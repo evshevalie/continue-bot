@@ -5,7 +5,7 @@ import json
 import logging
 import time
 
-from classes.bot import Bot
+from core.bot import Bot
 
 logging.basicConfig(
     format='[%(levelname)s][%(asctime)s] %(message)s',
@@ -30,6 +30,7 @@ if __name__ == "__main__":
         try:
             bot.check_messages()
             bot.check_unkicked()
+            bot.check_intruders()
             time.sleep(1)
         except KeyboardInterrupt:
             log.error("Shutdown...")

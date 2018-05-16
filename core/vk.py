@@ -43,3 +43,9 @@ class VK:
             'utils.resolveScreenName',
             {'screen_name': nick}
         )['object_id']
+
+    def get_users(self, chat_id):
+        return self.vk.method(
+            'messages.getChat',
+            {'chat_id': chat_id}
+        )['users']

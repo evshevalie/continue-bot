@@ -7,18 +7,25 @@ from database import Database
 from commands import Command
 from datetime import datetime
 
+
 class Bot:
     def __init__(self, config, creds, messages, logging):
-        self.lm = os.path.join(os.getcwd(), "config/last_message_id.txt")
+        self.lm = os.path.join(os.getcwd(), "cache/last_message_id")
         db_path = os.path.join(os.getcwd(), "database/continue-bot.db")
 
         self.log = logging
         self.vk = VK(creds['login'], creds['password'])
         self.database = Database(db_path, logging)
-        self.command = Command(self.vk, self.database, config['chat_id'], messages, self.log)
+        self.command = Command(
+            self.vk,
+            self.database,
+            config['chat_id'],
+            messages,
+            logging
+        )
         self.config = config
 
-        if os.stat(self.lm).st_size != 0:
+        if os.path.exists(self.lm):
             with open(self.lm, 'r') as l:
                 self.config['messages']['last_message_id'] = l.read()
                 self.log.info("Readed last message id")
@@ -26,7 +33,7 @@ class Bot:
     def last_message(self, msg_id):
         message_conf = self.config['messages']
 
-        if not 'last_message_id' in message_conf:
+        if 'last_message_id' not in message_conf:
             with open(self.lm, 'w+') as l:
                 l.write(str(msg_id))
         elif message_conf['last_message_id'] != msg_id:
@@ -53,16 +60,29 @@ class Bot:
         kicked = self.database.get_unkicked()
         if kicked:
             self.log.info("Next users will unckicked: {0}".format(kicked))
-            for user in kicked:
-                self.log.info("Unckicking user with id {0}".format(user[0]))
-                self.command.user_unkick(["id{0}".format(user[0])])
+            for k in kicked:
+                self.log.info("Unkicking user with id {0}".format(k[0]))
+                self.command.user_unkick(["id{0}".format(k[0])])
+
+    def check_intruders(self):
+        kicked = [k[0] for k in self.database.get_all_kicked()]
+        banned = [b[0] for b in self.database.get_all_banned()]
+
+        intruders = set(kicked + banned)
+        users = set(self.vk.get_users(config['chat_id']))
+        intruders = list(intruders & users)
+
+        if intruders:
+            self.log.info("Starting kick some intruders...")
+            for i in intruders:
+                vk.self.kick_user(config['chat_id'], i)
+                self.log.info("Kicked intruder with id {0}".format(i))
 
     def spawn_command(self, command):
         command_type = command[0][1:]
         command_params = command[1:]
 
         self.log.info("Read command \"{0}\"".format(command_type))
-
         if command_type == "помощь":
             self.command.print_help()
         elif command_type == "привет":
