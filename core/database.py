@@ -28,7 +28,7 @@ class Database:
         self.connect.commit()
 
     def get_all_kicked(self):
-        q = "SELECT * FROM users_kicked"
+        q = "SELECT id FROM users_kicked"
         self.cursor.execute(q)
         return self.cursor.fetchall()
 
@@ -39,5 +39,15 @@ class Database:
 
     def get_unkicked(self):
         q = "SELECT id FROM users_kicked WHERE unkick_time < datetime('now', 'localtime')"
+        self.cursor.execute(q)
+        return self.cursor.fetchall()
+
+    def add_admin(self, user_id):
+        q = "INSERT INTO users_banned VALUES ({0})".format(user_id)
+        self.cursor.execute(q)
+        self.connect.commit()
+
+    def get_admins(self):
+        q = "SELECT id FROM admins"
         self.cursor.execute(q)
         return self.cursor.fetchall()
