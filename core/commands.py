@@ -124,12 +124,13 @@ class Command:
             try:
                 user_name = params[0]
                 user_id = self.vk.get_uid_by_nick(user_name)
-
-                self.db.unset_ban(user_id)
-                try:
-                    self.vk.invite_user(self.chat_id, user_id)
-                except ApiError:
-                    self.vk.send_message(self.chat_id, self.messages['return'])
+                if self.db.is_banned(user_id):
+                    self.db.unset_ban(user_id)
+                    try:
+                        self.vk.invite_user(self.chat_id, user_id)
+                        self.vk.send_message(self.chat_id, self.messages['return_user'])
+                    except ApiError:
+                        self.vk.send_message(self.chat_id, self.messages['return'])
             except TypeError:
                 self.vk.send_message(self.chat_id, "Такого я не нахожу")
         else:
@@ -149,6 +150,7 @@ class Command:
                 self.db.unset_kick(user_id)
                 try:
                     self.vk.invite_user(self.chat_id, user_id)
+                    self.vk.send_message(self.chat_id, self.messages['return_user'])
                 except ApiError:
                     self.vk.send_message(self.chat_id, self.messages['return'])
             except TypeError:

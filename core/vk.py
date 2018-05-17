@@ -19,7 +19,7 @@ class VK:
     def send_repost(self, chat_id, attachment):
         return self.vk.method(
             'messages.send',
-            {'chat_id': chat_id, 'attachment': attachment}
+            {'chat_id': chat_id, 'attachment': attachment }
         )
 
     def send_message_user(self, user_id, message):
@@ -69,4 +69,4 @@ class VK:
 
     def get_last_news(self, group_id):
         return self.vk.method('wall.get',
-            { "owner_id": "-{0}".format(group_id), "offset": 1, "count": 1, "filter": "owner"})['items'][0]
+            { "owner_id": "-{0}".format(group_id), "offset": 1, "count": 1 })['items'][0]['id']

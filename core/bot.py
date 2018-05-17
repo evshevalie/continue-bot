@@ -80,14 +80,14 @@ class Bot:
                 self.vk.add_user(u, self.messages['frendly'])
 
     def check_news(self):
-        seconds = datetime.now().seconds
+        seconds = datetime.now().second
 
-        if seconds > 57 and seconds < 59:
+        if seconds > 55 and seconds < 59:
             with open(self.cache_ln, "r") as r:
-                last_id = int(r.read())
+                last_id = r.read()
 
-            last_news = int(self.vk.get_last_news(self.config['group_id']))
-            if last_id != last_news:
+            last_news = self.vk.get_last_news(self.config['group_id'])
+            if int(last_id) != int(last_news):
                 self.vk.send_repost(
                     self.config['chat_id'],
                     "wall-{0}_{1}".format(self.config['group_id'], last_news)
