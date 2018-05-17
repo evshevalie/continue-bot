@@ -9,13 +9,12 @@ from datetime import datetime
 
 
 class Bot:
-    def __init__(self, config, creds, messages, logging):
-        self.lm = os.path.join(os.getcwd(), "cache/last_message_id")
-        self.ln = os.path.join(os.getcwd(), "cache/last_post_id")
-        db_path = os.path.join(os.getcwd(), "database/continue-bot.db")
+    def __init__(self, config, creds, messages, home, logging):
+        self.cache_lm = os.path.join(home, "cache/last_message_id")
+        self.cache_ln = os.path.join(home, "cache/last_post_id")
+        db_path = os.path.join(home, "database/continue-bot.db")
 
-        self.log = logging
-        self.vk = VK(creds['login'], creds['password'])
+        self.vk = VK(creds['login'], creds['password'], logging)
         self.database = Database(db_path, logging)
         self.command = Command(
             self.vk,
@@ -24,11 +23,12 @@ class Bot:
             messages,
             logging
         )
+        self.log = logging
         self.config = config
         self.messages = messages
 
-        if os.path.exists(self.lm):
-            with open(self.lm, 'r') as l:
+        if os.path.exists(self.cache_lm):
+            with open(self.cache_lm, 'r') as l:
                 self.config['messages']['last_message_id'] = l.read()
                 self.log.info("Readed last message id")
 
@@ -50,6 +50,7 @@ class Bot:
 
     def check_unkicked(self):
         kicked = self.database.get_unkicked()
+
         if kicked:
             self.log.info("Next users will unckicked: {0}".format(kicked))
             for k in kicked:
@@ -72,31 +73,36 @@ class Bot:
 
     def check_friends(self):
         users = self.vk.request_list()
+
         if users:
             for u in users:
+                self.log.info("Adding user with id {0}".format(u))
                 self.vk.add_user(u, self.messages['frendly'])
 
     def check_news(self):
-        with open(self.ln, "r") as r:
-            last_id = int(r.read())
-        last_news = int(self.vk.get_last_news(self.config['group_id']))
-        if last_id != last_news:
-            self.log.info("Last news id: {0}".format(last_news))
-            self.vk.send_repost(
-                self.config['chat_id'],
-                "wall-{0}_{1}".format(self.config['group_id'], last_news)
-            )
-            with open(self.ln, "w+") as f:
-                f.write(str(last_news))
+        seconds = datetime.now().seconds
+
+        if seconds > 57 and seconds < 59:
+            with open(self.cache_ln, "r") as r:
+                last_id = int(r.read())
+
+            last_news = int(self.vk.get_last_news(self.config['group_id']))
+            if last_id != last_news:
+                self.vk.send_repost(
+                    self.config['chat_id'],
+                    "wall-{0}_{1}".format(self.config['group_id'], last_news)
+                )
+                with open(self.cache_ln, "w+") as f:
+                    f.write(str(last_news))
 
     def __last_message(self, msg_id):
         message_conf = self.config['messages']
 
         if 'last_message_id' not in message_conf:
-            with open(self.lm, 'w+') as l:
+            with open(self.cache_lm, 'w+') as l:
                 l.write(str(msg_id))
         elif message_conf['last_message_id'] != msg_id:
-            with open(self.lm, 'w+') as l:
+            with open(self.cache_lm, 'w+') as l:
                 l.write(str(msg_id))
 
     def __spawn_command(self, command, user_id):

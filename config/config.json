@@ -1,6 +1,7 @@
 {
   "chat_id": 5,
   "group_id": 54182626,
+  "bot_path": "/Users/ashevchenko/Git/continue-bot",
   "messages": {
     "out": 0,
     "count": 20,

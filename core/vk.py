@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import json
+import time
 
 from vk_api.vk_api import VkApi
 
 class VK:
-    def __init__(self, username, password):
+    def __init__(self, username, password, log):
         self.vk = VkApi(login=username, password=password)
         self.vk.auth()
+        self.log = log
 
     def send_message(self, chat_id, message):
         return self.vk.method(
@@ -66,7 +68,5 @@ class VK:
         return self.vk.method('friends.getRequests')['items']
 
     def get_last_news(self, group_id):
-        return self.vk.method(
-            'wall.get',
-            {'owner_id': "-{0}".format(group_id), "offset": 1, "count": 1}
-        )['items'][0]['id']
+        return self.vk.method('wall.get',
+            { "owner_id": "-{0}".format(group_id), "offset": 1, "count": 1, "filter": "owner"})['items'][0]

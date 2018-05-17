@@ -1,5 +1,6 @@
 *.pyc
 *.db
+.DS_Store
 
 # Configuration files
 credentials.json
@@ -7,3 +8,4 @@ vk_config.v2.json
 
 # Cache files
 last_message_id
+last_post_id
