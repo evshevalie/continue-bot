@@ -41,6 +41,10 @@ class Database:
         q = "DELETE FROM users_banned WHERE id={0}".format(user_id)
         self.__set(q)
 
+    def is_banned(self, user_id):
+        q = "SELECT id FROM users_banned WHERE id={0}".format(user_id)
+        return len(self.__get(q))
+
     def set_kicked(self, user_id, datetime):
         q = "INSERT INTO users_kicked VALUES ({0}, '{1}')".format(user_id, datetime)
         self.__set(q)

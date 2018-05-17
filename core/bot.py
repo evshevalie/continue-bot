@@ -114,6 +114,8 @@ class Bot:
             self.command.print_help(user_id)
         elif command_type == "привет":
             self.command.print_hello()
+        elif command_type == "правила":
+            self.command.print_rules()
         elif command_type == "кик":
             self.command.user_kick(command_params, user_id)
         elif command_type == "вернуть":

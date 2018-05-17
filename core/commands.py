@@ -91,6 +91,7 @@ class Command:
 
             return_time = time.replace(tzinfo=timezone).strftime("%Y-%m-%d %H:%M:%S")
             self.__kick(user_id)
+            self.vk.add_user(user_id, self.messages['ban_user'])
             self.vk.send_message(self.chat_id, self.messages['kick'])
             self.db.set_kicked(user_id, time.strftime("%Y-%m-%d %H:%M:%S"))
             try:
@@ -107,6 +108,7 @@ class Command:
             user_id = params[0].split("|")[0].replace("[id","")
             if not self.db.is_admin(user_id):
                 self.__kick(user_id)
+                self.vk.add_user(user_id, self.messages['ban_user'])
                 self.vk.send_message(self.chat_id, self.messages['ban'])
                 self.db.set_ban(user_id)
             else:
@@ -118,35 +120,44 @@ class Command:
     @__only_admins
     @__with_params
     def user_unban(self, params, user_id):
-        try:
-            user_name = params[0]
-            user_id = self.vk.get_uid_by_nick(user_name)
-
-            self.db.unset_ban(user_id)
+        if self.db.is_banned(user_id):
             try:
-                self.vk.invite_user(self.chat_id, user_id)
-            except ApiError:
-                self.vk.send_message(self.chat_id, self.messages['return'])
-        except TypeError:
-            self.vk.send_message(self.chat_id, "Такого я не нахожу")
+                user_name = params[0]
+                user_id = self.vk.get_uid_by_nick(user_name)
+
+                self.db.unset_ban(user_id)
+                try:
+                    self.vk.invite_user(self.chat_id, user_id)
+                except ApiError:
+                    self.vk.send_message(self.chat_id, self.messages['return'])
+            except TypeError:
+                self.vk.send_message(self.chat_id, "Такого я не нахожу")
+        else:
+            self.vk.send_message(
+                self.chat_id,
+                "Воспользуйтесь командой /вернуть, если хотите вернуть кикнутого пользователя"
+            )
 
     @__only_admins
     @__with_params
     def user_unkick(self, params, user_id):
-        try:
-            user_name = params[0]
-            user_id = self.vk.get_uid_by_nick(user_name)
-
-            self.db.unset_kick(user_id)
+        if not self.db.is_banned(user_id):
             try:
-                self.vk.invite_user(self.chat_id, user_id)
-                self.vk.add_user(user_id, self.messages['ban_user'])
-                self.vk.send_message(self.chat_id, self.messages['return_user'])
-            except ApiError:
-                self.vk.send_message(self.chat_id, self.messages['return'])
-        except TypeError:
-            self.vk.send_message(self.chat_id, "Такого я не нахожу")
+                user_name = params[0]
+                user_id = self.vk.get_uid_by_nick(user_name)
 
+                self.db.unset_kick(user_id)
+                try:
+                    self.vk.invite_user(self.chat_id, user_id)
+                except ApiError:
+                    self.vk.send_message(self.chat_id, self.messages['return'])
+            except TypeError:
+                self.vk.send_message(self.chat_id, "Такого я не нахожу")
+        else:
+            self.vk.send_message(
+                self.chat_id,
+                "Воспользуйтесь командой /разбан, если хотите вернуть забанненого пользователя"
+            )
 
     @__only_creators
     def user_admin(self, params, user_id):
@@ -185,6 +196,9 @@ class Command:
             )
             else:
                 self.unknown()
+
+    def print_rules(self):
+        self.vk.send_message(self.chat_id, self.messages['rules'])
 
     def print_hello(self):
         self.vk.send_message(self.chat_id, self.messages['hello'])
