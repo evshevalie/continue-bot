@@ -37,7 +37,7 @@ def main():
             bot.check_unkicked()
             bot.check_intruders()
             bot.check_friends()
-            #bot.check_news()
+            bot.check_news()
             time.sleep(1)
 
         except KeyboardInterrupt:

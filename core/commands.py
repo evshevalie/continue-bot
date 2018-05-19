@@ -58,7 +58,7 @@ class Command:
         self.vk.kick_user(self.chat_id, user_id)
         self.vk.add_user(user_id, self.messages['ban_user'])
 
-    def __self_kick(self, user_id, time=1):
+    def __self_kick(self, user_id, time=5):
         if not self.db.is_kicked(user_id):
             time = datetime.now() + timedelta(minutes=time)
             return_time = time - datetime.now()
@@ -73,38 +73,42 @@ class Command:
         if re.match(r"^\[id\d*\|.*\]$", params[0]):
             user_id = params[0].split("|")[0].replace("[id","")
             time = datetime.now()
-            if len(params) == 1:
-                time += timedelta(minutes=10)
-            elif re.match(r"^\d*[dmh]$", params[1]):
-                time_count = int(params[1][:-1])
-                time_type = params[1][-1]
+            if not self.db.is_admin(user_id):
+                if len(params) == 1:
+                    time += timedelta(minutes=10)
+                elif re.match(r"^\d*[dmh]$", params[1]):
+                    time_count = int(params[1][:-1])
+                    time_type = params[1][-1]
 
-                if time_type == 'd':
-                    time += timedelta(days=time_count)
-                elif time_type == 'h':
-                    time += timedelta(hours=time_count)
-                elif time_type == 'm':
-                    time += timedelta(minutes=time_count)
+                    if time_type == 'd':
+                        time += timedelta(days=time_count)
+                    elif time_type == 'h':
+                        time += timedelta(hours=time_count)
+                    elif time_type == 'm':
+                        time += timedelta(minutes=time_count)
+                    else:
+                        self.vk.send_message(self.chat_id, "Введите корректно время. К примеру 10m - 10 минут")
+                        return
+
+                    return_time = time.replace(tzinfo=timezone).strftime("%Y-%m-%d %H:%M:%S")
+                    self.__kick(user_id)
+                    self.vk.add_user(user_id, self.messages['ban_user'])
+                    self.vk.send_message(self.chat_id, self.messages['kick'])
+                    self.db.set_kicked(user_id, time.strftime("%Y-%m-%d %H:%M:%S"))
+                    try:
+                        self.vk.send_message_user(user_id, self.messages['return_time'] + return_time)
+                    except ApiError:
+                        return
             else:
-                self.vk.send_message(self.chat_id, "Введите корректно время. К примеру 10m - 10 минут")
-                return
-
-            return_time = time.replace(tzinfo=timezone).strftime("%Y-%m-%d %H:%M:%S")
-            self.__kick(user_id)
-            self.vk.add_user(user_id, self.messages['ban_user'])
-            self.vk.send_message(self.chat_id, self.messages['kick'])
-            self.db.set_kicked(user_id, time.strftime("%Y-%m-%d %H:%M:%S"))
-            try:
-                self.vk.send_message_user(user_id, self.messages['return_time'] + return_time)
-            except ApiError:
-                return
+                self.vk.send_message(self.chat_id, "Нельзя кикнуть администратора!")
         else:
             self.vk.send_message(self.chat_id, "Введите корректно @упоминание")
+
 
     @__only_admins
     @__with_params
     def user_ban(self, params, user_id):
-        if re.match(r"^\[id\d*\|.*\]$",params[0]):
+        if re.match(r"^\[id\d*\|.*\]$", params[0]):
             user_id = params[0].split("|")[0].replace("[id","")
             if not self.db.is_admin(user_id):
                 self.__kick(user_id)
@@ -120,10 +124,10 @@ class Command:
     @__only_admins
     @__with_params
     def user_unban(self, params, user_id):
-        if self.db.is_banned(user_id):
-            try:
-                user_name = params[0]
-                user_id = self.vk.get_uid_by_nick(user_name)
+        try:
+            user_name = params[0]
+            user_id = self.vk.get_uid_by_nick(user_name)
+            if self.db.is_banned(user_id):
                 if self.db.is_banned(user_id):
                     self.db.unset_ban(user_id)
                     try:
@@ -131,35 +135,35 @@ class Command:
                         self.vk.send_message(self.chat_id, self.messages['return_user'])
                     except ApiError:
                         self.vk.send_message(self.chat_id, self.messages['return'])
-            except TypeError:
-                self.vk.send_message(self.chat_id, "Такого я не нахожу")
-        else:
-            self.vk.send_message(
-                self.chat_id,
-                "Воспользуйтесь командой /вернуть, если хотите вернуть кикнутого пользователя"
-            )
+                else:
+                    self.vk.send_message(
+                        self.chat_id,
+                        "Воспользуйтесь командой /вернуть, если хотите вернуть кикнутого пользователя"
+                    )
+        except TypeError:
+            self.vk.send_message(self.chat_id, "Такого я не нахожу")
+
 
     @__only_admins
     @__with_params
     def user_unkick(self, params, user_id):
-        if not self.db.is_banned(user_id):
-            try:
-                user_name = params[0]
-                user_id = self.vk.get_uid_by_nick(user_name)
-
+        try:
+            user_name = params[0]
+            user_id = self.vk.get_uid_by_nick(user_name)
+            if not self.db.is_banned(user_id):
                 self.db.unset_kick(user_id)
                 try:
                     self.vk.invite_user(self.chat_id, user_id)
                     self.vk.send_message(self.chat_id, self.messages['return_user'])
                 except ApiError:
                     self.vk.send_message(self.chat_id, self.messages['return'])
-            except TypeError:
-                self.vk.send_message(self.chat_id, "Такого я не нахожу")
-        else:
-            self.vk.send_message(
-                self.chat_id,
-                "Воспользуйтесь командой /разбан, если хотите вернуть забанненого пользователя"
-            )
+            else:
+                self.vk.send_message(
+                    self.chat_id,
+                    "Воспользуйтесь командой /разбан, если хотите вернуть забанненого пользователя"
+                )
+        except TypeError:
+            self.vk.send_message(self.chat_id, "Такого я не нахожу")
 
     @__only_creators
     def user_admin(self, params, user_id):
@@ -179,25 +183,71 @@ class Command:
                 return
 
             if params[0] == "добавить":
-                self.db.set_admin(user_id)
-                self.vk.send_message(
-                    self.chat_id,
-                    "[id{0}|Администратор] успешно добавлен!".format(user_id)
-                )
+                if not self.db.is_admin(user_id):
+                    self.db.set_admin(user_id)
+                    self.vk.send_message(
+                        self.chat_id,
+                        "[id{0}|Администратор] успешно добавлен!".format(user_id)
+                    )
+                else:
+                    self.vk.send_message(
+                        self.chat_id,
+                        "Данный пользователь уже является администратором".format(user_id)
+                    )
             elif params[0] == "удалить":
-                self.db.remove_admin(user_id)
-                self.vk.send_message(
-                    self.chat_id,
-                    "[id{0}|Администратор] успешно удален!".format(user_id)
-                )
+                if self.db.is_admin(user_id):
+                    self.db.remove_admin(user_id)
+                    self.vk.send_message(
+                        self.chat_id,
+                        "[id{0}|Администратор] успешно удален!".format(user_id)
+                    )
+                else:
+                    self.vk.send_message(
+                        self.chat_id,
+                        "Данный пользователь не является администратором".format(user_id)
+                    )
             elif params[0] == "повысить":
-                self.db.set_creator(user_id)
-                self.vk.send_message(
-                self.chat_id,
-                "[id{0}|Администратор] успешно повышен!".format(user_id)
-            )
+                if self.db.is_admin(user_id):
+                    self.db.set_creator(user_id)
+                    self.vk.send_message(
+                        self.chat_id,
+                    "[id{0}|Администратор] успешно повышен!".format(user_id)
+                    )
+                else:
+                    self.vk.send_message(
+                        self.chat_id,
+                        "Данный пользователь не является администратором".format(user_id)
+                    )
             else:
                 self.unknown()
+
+    @__only_admins
+    @__with_params
+    def user_warning(self, params, user_id):
+        if re.match(r"^\[id\d*\|.*\]$",params[0]):
+            user_id = params[0].split("|")[0].replace("[id","")
+            if not self.db.is_warning(user_id):
+                self.db.set_warning(user_id)
+                self.vk.send_message(self.chat_id, """
+                    Тебя посадили на карандаш!
+                    Это 1 из 3 возможных предупреждений. Когда будет три, ты отправишься в бан, дружок 😏
+                """)
+            elif self.db.count_warnings(user_id) < 2:
+                self.db.add_warning(user_id)
+                self.vk.send_message(self.chat_id, """
+                    Это {0} из 3 возможных предупреждений. Не забывай правила ⚠
+                """.format(self.db.count_warnings(user_id)))
+            else:
+                self.vk.send_message(self.chat_id, """
+                    Поздравляю, ты доигрался, дружок-пирожок
+                """.format(self.db.count_warnings(user_id)))
+                self.__kick(user_id)
+                self.vk.add_user(user_id, self.messages['ban_user'])
+                self.vk.send_message(self.chat_id, self.messages['ban'])
+                self.db.set_ban(user_id)
+                self.db.remove_warnings(user_id)
+        else:
+            self.vk.send_message(self.chat_id, "Это не похоже на упоминание...")
 
     def print_rules(self):
         self.vk.send_message(self.chat_id, self.messages['rules'])

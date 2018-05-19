@@ -92,3 +92,23 @@ class Database:
     def remove_admin(self, user_id):
         q = "DELETE FROM users_admin WHERE id={0}".format(user_id)
         self.__set(q)
+
+    def set_warning(self, user_id):
+        q = "INSERT INTO users_warnings VALUES ({0}, 1)".format(user_id)
+        self.__set(q)
+
+    def add_warning(self, user_id):
+        q = "UPDATE users_warnings SET warnings = warnings + 1 WHERE id={0}".format(user_id)
+        self.__set(q)
+
+    def is_warning(self, user_id):
+        q = "SELECT * from users_warnings WHERE id={0}".format(user_id)
+        return len(self.__get(q))
+
+    def count_warnings(self, user_id):
+        q = "SELECT warnings FROM users_warnings WHERE id={0}".format(user_id)
+        return self.__get(q)[0]
+
+    def remove_warnings(self, user_id):
+        q = "DELETE FROM users_warnings WHERE id={0}".format(user_id)
+        self.__set(q)

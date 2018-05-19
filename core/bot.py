@@ -110,21 +110,23 @@ class Bot:
         command_params = [] + command[1:]
 
         self.log.info("Read command \"{0}\"".format(command_type))
-        if command_type == "помощь":
+        if command_type == "помощь" or command_type == "help":
             self.command.print_help(user_id)
-        elif command_type == "привет":
+        elif command_type == "привет" or command_type == "hello":
             self.command.print_hello()
-        elif command_type == "правила":
+        elif command_type == "правила" or command_type == "rules":
             self.command.print_rules()
-        elif command_type == "кик":
+        elif command_type == "кик" or command_type == "kick":
             self.command.user_kick(command_params, user_id)
-        elif command_type == "вернуть":
+        elif command_type == "вернуть" or command_type == "return":
             self.command.user_unkick(command_params, user_id)
-        elif command_type == "бан":
+        elif command_type == "бан" or command_type == "ban":
             self.command.user_ban(command_params, user_id)
-        elif command_type == "разбан":
+        elif command_type == "разбан" or command_type == "unban":
             self.command.user_unban(command_params, user_id)
-        elif command_type == "админ":
+        elif command_type == "админ" or command_type == "admin":
             self.command.user_admin(command_params, user_id)
+        elif command_type == "предупреждение" or command_type == "warning":
+            self.command.user_warning(command_params, user_id)
         else:
             self.command.unknown()
