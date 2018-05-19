@@ -8,7 +8,6 @@ from vk_api.exceptions import ApiError
 from database import Database
 from functools import wraps
 
-timezone = pytz.timezone('Europe/Moscow')
 
 class Command:
     def __init__(self, vk, db, chat_id, messages, log):
@@ -90,7 +89,7 @@ class Command:
                         self.vk.send_message(self.chat_id, "Введите корректно время. К примеру 10m - 10 минут")
                         return
 
-                    return_time = time.replace(tzinfo=timezone).strftime("%Y-%m-%d %H:%M:%S")
+                    return_time = (time + timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S")
                     self.__kick(user_id)
                     self.vk.add_user(user_id, self.messages['ban_user'])
                     self.vk.send_message(self.chat_id, self.messages['kick'])
