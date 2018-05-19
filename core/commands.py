@@ -226,26 +226,28 @@ class Command:
     def user_warning(self, params, user_id):
         if re.match(r"^\[id\d*\|.*\]$",params[0]):
             user_id = params[0].split("|")[0].replace("[id","")
-            if not self.db.is_warning(user_id):
-                self.db.set_warning(user_id)
-                self.vk.send_message(self.chat_id, """
-                    Тебя посадили на карандаш!
-                    Это 1 из 3 возможных предупреждений. Когда будет три, ты отправишься в бан, дружок 😏
-                """)
-            elif self.db.count_warnings(user_id) < 2:
-                self.db.add_warning(user_id)
-                self.vk.send_message(self.chat_id, """
-                    Это {0} из 3 возможных предупреждений. Не забывай правила ⚠
-                """.format(self.db.count_warnings(user_id)))
+            if not self.db.is_admin(user_id):
+                if not self.db.is_warning(user_id):
+                    self.db.set_warning(user_id)
+                    self.vk.send_message(self.chat_id, """
+                        Тебя посадили на карандаш!\nЭто 1 из 3 возможных предупреждений. Когда будет три, ты отправишься в бан, дружок 😏
+                    """)
+                elif self.db.count_warnings(user_id) < 2:
+                    self.db.add_warning(user_id)
+                    self.vk.send_message(self.chat_id, """
+                        Это {0} из 3 возможных предупреждений. Не забывай правила ⚠
+                    """.format(self.db.count_warnings(user_id)))
+                else:
+                    self.vk.send_message(self.chat_id, """
+                        Поздравляю, ты доигрался, дружок-пирожок
+                    """.format(self.db.count_warnings(user_id)))
+                    self.__kick(user_id)
+                    self.vk.add_user(user_id, self.messages['ban_user'])
+                    self.vk.send_message(self.chat_id, self.messages['ban'])
+                    self.db.set_ban(user_id)
+                    self.db.remove_warnings(user_id)
             else:
-                self.vk.send_message(self.chat_id, """
-                    Поздравляю, ты доигрался, дружок-пирожок
-                """.format(self.db.count_warnings(user_id)))
-                self.__kick(user_id)
-                self.vk.add_user(user_id, self.messages['ban_user'])
-                self.vk.send_message(self.chat_id, self.messages['ban'])
-                self.db.set_ban(user_id)
-                self.db.remove_warnings(user_id)
+                self.vk.send_message(self.chat_id, "Нельзя выдать предупреждение администратору!")
         else:
             self.vk.send_message(self.chat_id, "Это не похоже на упоминание...")
 
