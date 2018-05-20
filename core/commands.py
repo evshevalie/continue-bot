@@ -122,7 +122,7 @@ class Command:
 
     @__only_admins
     @__with_params
-    def user_unban(self, params, user_id):
+    def user_return(self, params, user_id):
         try:
             user_name = params[0]
             user_id = self.vk.get_uid_by_nick(user_name)
@@ -208,6 +208,7 @@ class Command:
         if re.match(r"^\[id\d*\|.*\]$",params[0]):
             user_id = params[0].split("|")[0].replace("[id","")
             if not self.db.is_admin(user_id):
+                self.log.info(self.db.count_warnings(user_id))
                 if not self.db.is_warning(user_id):
                     self.db.set_warning(user_id)
                     self.vk.send_message(self.chat_id, """
@@ -229,6 +230,20 @@ class Command:
                     self.db.remove_warnings(user_id)
             else:
                 self.vk.send_message(self.chat_id, "Нельзя выдать предупреждение администратору!")
+        else:
+            self.vk.send_message(self.chat_id, "Это не похоже на упоминание...")
+
+    @__only_admins
+    @__with_params
+    def remove_warnings(self, params, user_id):
+        if re.match(r"^\[id\d*\|.*\]$",params[0]):
+            user_id = params[0].split("|")[0].replace("[id","")
+
+            if self.db.count_warnings(user_id) > 0:
+                self.db.remove_warnings(user_id)
+                self.vk.send_message(self.chat_id, "Так уж и быть, ты прощен. Предупреждения сняты 😇")
+            else:
+                self.vk.send_message(self.chat_id, "Этот пользователь безгрешен. Его не за что прощать 😇")
         else:
             self.vk.send_message(self.chat_id, "Это не похоже на упоминание...")
 

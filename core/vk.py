@@ -69,4 +69,4 @@ class VK:
 
     def get_last_news(self, group_id):
         return self.vk.method('wall.get',
-            { "owner_id": "-{0}".format(group_id), "offset": 1, "count": 1 })['items'][0]['id']
+            { "owner_id": "-{0}".format(group_id), "offset": 0, "count": 2 })['items']

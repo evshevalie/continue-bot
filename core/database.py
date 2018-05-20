@@ -107,7 +107,8 @@ class Database:
 
     def count_warnings(self, user_id):
         q = "SELECT warnings FROM users_warnings WHERE id={0}".format(user_id)
-        return self.__get(q)[0]
+        result = self.__get(q)
+        return result[0] if result else 0
 
     def remove_warnings(self, user_id):
         q = "DELETE FROM users_warnings WHERE id={0}".format(user_id)

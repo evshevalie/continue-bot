@@ -55,7 +55,7 @@ class Bot:
             self.log.info("Next users will unckicked: {0}".format(kicked))
             for k in kicked:
                 self.log.info("Unkicking user with id {0}".format(k))
-                self.command.user_unkick(["id{0}".format(k)], "0")
+                self.command.user_return(["id{0}".format(k)], "0")
 
     def check_intruders(self):
         kicked = self.database.get_all_kicked()
@@ -87,13 +87,15 @@ class Bot:
                 last_id = r.read()
 
             last_news = self.vk.get_last_news(self.config['group_id'])
-            if int(last_id) != int(last_news):
-                self.vk.send_repost(
-                    self.config['chat_id'],
-                    "wall-{0}_{1}".format(self.config['group_id'], last_news)
-                )
-                with open(self.cache_ln, "w+") as f:
-                    f.write(str(last_news))
+            for n in last_news:
+                n = n['id']
+                if int(last_id) < int(n):
+                    self.vk.send_repost(
+                        self.config['chat_id'],
+                        "wall-{0}_{1}".format(self.config['group_id'], n)
+                    )
+                    with open(self.cache_ln, "w+") as f:
+                        f.write(str(n))
 
     def __last_message(self, msg_id):
         message_conf = self.config['messages']
@@ -119,12 +121,14 @@ class Bot:
         elif command_type == "кик" or command_type == "kick":
             self.command.user_kick(command_params, user_id)
         elif command_type == "вернуть" or command_type == "return":
-            self.command.user_unban(command_params, user_id)
+            self.command.user_return(command_params, user_id)
         elif command_type == "бан" or command_type == "ban":
             self.command.user_ban(command_params, user_id)
         elif command_type == "админ" or command_type == "admin":
             self.command.user_admin(command_params, user_id)
         elif command_type == "предупреждение" or command_type == "warning":
             self.command.user_warning(command_params, user_id)
+        elif command_type == "простить" or command_type == "forgive":
+            self.command.remove_warnings(command_params, user_id)
         else:
             self.command.unknown()
