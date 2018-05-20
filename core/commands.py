@@ -126,43 +126,25 @@ class Command:
         try:
             user_name = params[0]
             user_id = self.vk.get_uid_by_nick(user_name)
+
             if self.db.is_banned(user_id):
-                if self.db.is_banned(user_id):
-                    self.db.unset_ban(user_id)
-                    try:
-                        self.vk.invite_user(self.chat_id, user_id)
-                        self.vk.send_message(self.chat_id, self.messages['return_user'])
-                    except ApiError:
-                        self.vk.send_message(self.chat_id, self.messages['return'])
-                else:
-                    self.vk.send_message(
-                        self.chat_id,
-                        "Воспользуйтесь командой /вернуть, если хотите вернуть кикнутого пользователя"
-                    )
-        except TypeError:
-            self.vk.send_message(self.chat_id, "Такого я не нахожу")
-
-
-    @__only_admins
-    @__with_params
-    def user_unkick(self, params, user_id):
-        try:
-            user_name = params[0]
-            user_id = self.vk.get_uid_by_nick(user_name)
-            if not self.db.is_banned(user_id):
+                self.db.unset_ban(user_id)
+            elif self.db.is_kicked(user_id):
                 self.db.unset_kick(user_id)
-                try:
-                    self.vk.invite_user(self.chat_id, user_id)
-                    self.vk.send_message(self.chat_id, self.messages['return_user'])
-                except ApiError:
-                    self.vk.send_message(self.chat_id, self.messages['return'])
             else:
                 self.vk.send_message(
                     self.chat_id,
-                    "Воспользуйтесь командой /разбан, если хотите вернуть забанненого пользователя"
+                    "Данный пользователь не является забаненным или кикнутым"
                 )
+                return
+            try:
+                self.vk.invite_user(self.chat_id, user_id)
+                self.vk.send_message(self.chat_id, self.messages['return_user'])
+            except ApiError:
+                self.vk.send_message(self.chat_id, self.messages['return'])
         except TypeError:
             self.vk.send_message(self.chat_id, "Такого я не нахожу")
+
 
     @__only_creators
     def user_admin(self, params, user_id):

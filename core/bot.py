@@ -119,11 +119,9 @@ class Bot:
         elif command_type == "кик" or command_type == "kick":
             self.command.user_kick(command_params, user_id)
         elif command_type == "вернуть" or command_type == "return":
-            self.command.user_unkick(command_params, user_id)
+            self.command.user_unban(command_params, user_id)
         elif command_type == "бан" or command_type == "ban":
             self.command.user_ban(command_params, user_id)
-        elif command_type == "разбан" or command_type == "unban":
-            self.command.user_unban(command_params, user_id)
         elif command_type == "админ" or command_type == "admin":
             self.command.user_admin(command_params, user_id)
         elif command_type == "предупреждение" or command_type == "warning":
